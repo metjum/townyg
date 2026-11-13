@@ -919,6 +919,9 @@ def compose(big=False):
 
 
 
+_NEWER = None
+
+
 class TUI:
     """One cbreak session for the whole wizard: no echo between keys, full redraw each frame, alt screen is wiped on exit."""
     def __init__(self):
@@ -982,6 +985,8 @@ class TUI:
     def frame(self, title, body, hint, animate=False):
         out = ["\033[H\033[2J"]
         lines = [""] + ["  " + r for r in self.banner()] + [""]
+        if _NEWER:
+            lines = lines[:-1] + [f"  {YEL}↑ nová verze {_NEWER}{RST} {DIM}(máš {VERSION}) · ukonči a spusť: townyg update{RST}", ""]
         for lab, val in self.history:
             lines.append(f"  {GRN}✔{RST} {DIM}{lab}{RST}  {val}")
         if self.history:
@@ -1136,7 +1141,53 @@ def wizard(t, a, need_city, need_styles, need_area=False):
         raise KeyboardInterrupt
 
 
+REPO = "metjum/townyg"
+
+
+def latest_version(timeout=1.5):
+    """Latest GitHub release tag, cached for 24 h in ~/Townyg/.update-check. Never raises, never blocks long."""
+    f = os.path.join(HERE, ".update-check")
+    try:
+        c = json.load(open(f))
+        if time.time() - c["t"] < 86400:
+            return c["v"]
+    except Exception:  # noqa
+        pass
+    try:
+        req = urllib.request.Request(f"https://api.github.com/repos/{REPO}/releases/latest", headers=UA)
+        v = json.load(urllib.request.urlopen(req, timeout=timeout))["tag_name"].lstrip("v")
+        json.dump({"t": time.time(), "v": v}, open(f, "w"))
+        return v
+    except Exception:  # noqa
+        return None
+
+
+def _vt(v):
+    return tuple(int(x) for x in re.findall(r"\d+", v or "0")[:3])
+
+
+def update_available():
+    v = latest_version()
+    return v if v and _vt(v) > _vt(VERSION) else None
+
+
+def self_update():
+    brew = shutil.which("brew")
+    if brew and "/Cellar/townyg/" in os.path.realpath(__file__):
+        print(f"{B}townyg {VERSION}{RST} · aktualizuji přes Homebrew")
+        subprocess.run([brew, "update"])
+        sys.exit(subprocess.run([brew, "upgrade", "townyg"]).returncode)
+    v = update_available()
+    if not v:
+        print(f"townyg {VERSION} je aktuální.")
+    else:
+        print(f"Je dostupná verze {v} (máš {VERSION}). Instalace z brew: brew upgrade townyg · z gitu: git pull")
+    sys.exit(0)
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] in ("update", "upgrade"):
+        self_update()
     ap = argparse.ArgumentParser(prog="townyg", description="Generátor GTA map z OpenStreetMap")
     ap.add_argument("--version", action="version", version="townyg " + VERSION)
     ap.add_argument("city", nargs="?", help="název města; bez něj se spustí interaktivní průvodce")
@@ -1155,6 +1206,9 @@ def main():
         a.area = "square"
     need_city, need_styles, need_area = not a.city, a.styles is None, a.area is None
     tui = None
+    newer = update_available() if interactive else None
+    global _NEWER
+    _NEWER = newer
     if interactive and (need_city or need_styles or need_area):
         tui = TUI()
         tui.__enter__()
