@@ -76,7 +76,7 @@ def slugify(name):
     return re.sub(r"[^a-z0-9]+", "-", s).strip("-") or "mesto"
 
 PKG = os.path.dirname(os.path.abspath(__file__))
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 # user data (maps, poster runtime) lives outside the package, so it survives upgrades
 HERE = os.path.abspath(os.path.expanduser(os.environ.get("TOWNYG_HOME") or "~/Townyg"))
 os.makedirs(HERE, exist_ok=True)
