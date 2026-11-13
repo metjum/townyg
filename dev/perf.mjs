@@ -4,7 +4,7 @@ const [slug, theme = 'gta5'] = process.argv.slice(2);
 const b = await chromium.launch({ args: process.env.GPU ? ['--enable-gpu','--use-angle=metal','--ignore-gpu-blocklist','--enable-gpu-rasterization','--enable-zero-copy'] : [] }); const p = await b.newPage({ viewport: { width: 1500, height: 900 }, deviceScaleFactor: 2 });
 p.on('pageerror', (e) => console.log('PAGE ERROR:', e.message));
 await p.addInitScript((t) => localStorage.setItem('gta-theme', t), theme);
-await p.goto('file://' + path.resolve('mapy', slug, 'index.html')); await p.waitForFunction(() => window.__gta); await p.waitForTimeout(1500);
+await p.goto('file://' + path.resolve(process.env.HOME, 'Townyg', 'maps', slug, 'index.html')); await p.waitForFunction(() => window.__gta); await p.waitForTimeout(1500);
 console.log('stats', JSON.stringify(await p.evaluate(() => window.__gta.stats())));
 async function bench(label, view, action) {
   await p.evaluate((v) => { const g = window.__gta; g.view.cx = v[0]; g.view.cy = v[1]; g.view.s = v[2]; g.render(); }, view); await p.waitForTimeout(900);

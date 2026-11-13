@@ -9,9 +9,9 @@ GTA-style interactive maps and print-ready posters of any town, built from open 
   <img alt="platform" src="https://img.shields.io/badge/macOS-supported-3de0ff?style=flat-square">
 </p>
 
-<p align="center"><a href="https://metjum.github.io/townyg/"><b>Website</b></a> · <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#how-it-works">How it works</a></p>
+<p align="center"><a href="https://metjum.github.io/townyg/"><b>Website</b></a> · <a href="https://metjum.github.io/townyg/demo/plzen/index.html">Live demo (Plzen)</a> · <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#how-it-works">How it works</a></p>
 
-<p align="center"><img src="docs/img/app.jpg" alt="townyg map of Černošín, GTA V atlas style" width="860"></p>
+<p align="center"><img src="docs/img/app.jpg" alt="townyg map of the whole city of Plzen, GTA V atlas style" width="860"></p>
 
 Type a town and get a map in the look of **GTA V** (atlas, radar, satellite), **GTA IV**, **Vice City** or **San Andreas**: real streets and buildings, shop names as signs on the buildings, traffic with buses that stop at real bus stops, day and night, seasons, weather, GPS routing and search. The whole municipality is mapped, not just a square around the centre, and everything outside the border is sea.
 
@@ -52,20 +52,22 @@ townyg --help
 | `-y` | no questions, defaults |
 | `--open` | open the map in the browser when done |
 
-Everything is written to `~/Townyg/mapy/<town>/` (override with `TOWNYG_HOME`):
+Everything is written to `~/Townyg/maps/<town>/` (override with `TOWNYG_HOME`):
 
 ```
-~/Townyg/mapy/cernosin/
+~/Townyg/maps/cernosin/
 ├── index.html        interactive map, open in any browser
-├── plakaty/          one 4096 px poster per style
+├── posters/          one 4096 px poster per style
 ├── osm.json, tiles/  download cache, interrupted runs resume
 └── info.json
-~/Townyg/mapy/index.html   gallery of all towns
+~/Townyg/maps/index.html   gallery of all towns
 ```
 
 To remove a town, delete its folder. The first poster render installs headless Chromium into `~/Townyg/.runtime` once (about 150 MB, needs Node, which brew installs).
 
 ## Looks
+
+Posters of Plzen, rendered by townyg:
 
 <table>
 <tr>

@@ -8,7 +8,7 @@ const p = await b.newPage({ viewport: { width: o.w || 1500, height: o.h || 900 }
 p.on('console', (m) => m.type() === 'error' && console.log('console error:', m.text()));
 p.on('pageerror', (e) => console.log('PAGE ERROR:', e.message));
 await p.addInitScript((t) => localStorage.setItem('gta-theme', t), o.theme || 'gta5');
-await p.goto('file://' + path.resolve('mapy', slug, 'index.html'));
+await p.goto('file://' + path.resolve(process.env.HOME, 'Townyg', 'maps', slug, 'index.html'));
 await p.waitForFunction(() => window.__gta);
 await p.waitForTimeout(1200);
 await p.evaluate((o) => {

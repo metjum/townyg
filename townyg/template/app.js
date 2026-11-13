@@ -42,7 +42,7 @@ const THEMES = {
     ui: { accent: '#f1c232', ink: '#000', display: "'Anton'", panel: 'rgba(12,14,18,.92)', skew: '-6deg', fill: '#fff' },
   },
   radar: {
-    name: 'GTA V', desc: 'Radar (noc)', dark: true, outside: '#0a0d12', land: '#222a36', farm: '#262e3a', grass: '#27342f', orchard: '#2a3830', scrub: '#243630',
+    name: 'GTA V', desc: 'Radar (night)', dark: true, outside: '#0a0d12', land: '#222a36', farm: '#262e3a', grass: '#27342f', orchard: '#2a3830', scrub: '#243630',
     wetland: '#22363a', forest: '#1f3b35', town: '#2c3342', industrial: '#2d323c', quarry: '#323640', rock: '#343944', park: '#27413a',
     cemetery: '#27382f', sport: '#2a4540', parking: '#2f3441', water: '#1c4468', waterLine: '#2a5f8c', waterText: '#78b3e3',
     roof: '#3b4457', side: '#2b3243', sideDark: '#1d2330', bstroke: '#4a5469', church: '#7a6a3d', shadow: 'rgba(0,0,0,.4)',
@@ -55,7 +55,7 @@ const THEMES = {
     ui: { accent: '#f1c232', ink: '#000', display: "'Anton'", panel: 'rgba(12,14,18,.92)', skew: '-6deg', fill: '#fff' },
   },
   sat: {
-    name: 'GTA V', desc: 'Satelit', outside: '#1d3a52', land: '#9a9468', farm: '#b1a661', grass: '#86a057', orchard: '#7d9a4f', scrub: '#6b8a4a',
+    name: 'GTA V', desc: 'Satellite', outside: '#1d3a52', land: '#9a9468', farm: '#b1a661', grass: '#86a057', orchard: '#7d9a4f', scrub: '#6b8a4a',
     wetland: '#5f8460', forest: '#476b3b', town: '#8d8776', industrial: '#8a867d', quarry: '#a09474', rock: '#968d7c', park: '#6f9a4e',
     cemetery: '#6d8a58', sport: '#7bab55', parking: '#8c8a84', water: '#3d7095', waterLine: '#2f6288', waterText: '#cfe6f6',
     roof: '#b2765f', side: '#8a5a49', sideDark: '#6a4337', bstroke: '#6e4a3d', church: '#d7c58a', shadow: 'rgba(15,20,10,.38)',
@@ -109,8 +109,8 @@ const THEMES = {
 };
 THEMES.radar.signBg = '#10161f'; THEMES.radar.signInk = '#e9eff8'; THEMES.sa.signBg = '#fff0a8'; THEMES.vc.signInk = '#9a1f5b'; THEMES.sat.signBg = 'rgba(255,255,255,.93)';
 const THEME_ORDER = ['gta5', 'radar', 'sat', 'sa', 'gta4', 'vc'];
-const SEASONS = { spring: 'Jaro', summer: 'Léto', autumn: 'Podzim', winter: 'Zima' };
-const WEATHERS = { clear: 'Jasno', rain: 'Déšť', snow: 'Sníh', fog: 'Mlha' };
+const SEASONS = { spring: 'Spring', summer: 'Summer', autumn: 'Autumn', winter: 'Winter' };
+const WEATHERS = { clear: 'Clear', rain: 'Rain', snow: 'Snow', fog: 'Fog' };
 const derived = {};
 function deriveTheme(base, season) {
   const key = base.name + base.desc + season; if (derived[key]) return derived[key];
@@ -128,31 +128,31 @@ function deriveTheme(base, season) {
 
 /* ------------------------------------------------------------------ blip kinds */
 const KINDS = {
-  radnice: { label: 'Radnice / úřad', color: '#3f7de0', g: 'star', imp: 3 },
-  policie: { label: 'Policie', color: '#2f6fe4', g: 'star', imp: 3 },
-  hasici: { label: 'Hasiči', color: '#e5392f', g: 'flame', imp: 3 },
-  zdravi: { label: 'Zdraví', color: '#e5392f', g: 'cross', imp: 2 },
-  lekarna: { label: 'Lékárna', color: '#3cb371', g: 'cross', imp: 1 },
-  skola: { label: 'Škola', color: '#f0a63a', g: 'S', imp: 2 },
-  knihovna: { label: 'Knihovna', color: '#f0a63a', g: 'B', imp: 1 },
-  posta: { label: 'Pošta', color: '#ececec', g: 'mail', imp: 3, dark: true },
-  banka: { label: 'Banka / bankomat', color: '#3ca55c', g: '$', imp: 1 },
-  benzina: { label: 'Čerpací stanice', color: '#f08a24', g: 'pump', imp: 3 },
-  jidlo: { label: 'Jídlo a pití', color: '#e8702a', g: 'fork', imp: 2 },
-  obchod: { label: 'Obchod', color: '#3ca55c', g: '$', imp: 2 },
-  kostel: { label: 'Kostel', color: '#9a74d6', g: 'church', imp: 3 },
-  zricenina: { label: 'Hrad / zřícenina', color: '#f2c230', g: 'castle', imp: 4, dark: true },
-  vyhlidka: { label: 'Vyhlídka', color: '#2fb6c9', g: 'eye', imp: 2 },
-  ubytovani: { label: 'Ubytování', color: '#c26bd8', g: 'H', imp: 2 },
-  muzeum: { label: 'Muzeum', color: '#f2c230', g: 'M', imp: 2, dark: true },
-  zajimavost: { label: 'Zajímavost', color: '#f2c230', g: 'star', imp: 2, dark: true },
-  pamatka: { label: 'Pomník / památka', color: '#9aa3ad', g: 'dot', imp: 1 },
-  sport: { label: 'Sport', color: '#3cb371', g: 'ball', imp: 1 },
-  vrchol: { label: 'Vrchol', color: '#a9754a', g: 'peak', imp: 2 },
-  vlak: { label: 'Nádraží', color: '#3f7de0', g: 'T', imp: 3 },
-  kancelar: { label: 'Firma / kancelář', color: '#6e7fd1', g: 'F', imp: 1 },
-  remeslo: { label: 'Řemeslo / služby', color: '#d1893f', g: 'R', imp: 1 },
-  bus: { label: 'Autobusová zastávka', color: '#3f7de0', g: 'bus', imp: 1 },
+  radnice: { label: 'Town hall / office', color: '#3f7de0', g: 'star', imp: 3 },
+  policie: { label: 'Police', color: '#2f6fe4', g: 'star', imp: 3 },
+  hasici: { label: 'Fire station', color: '#e5392f', g: 'flame', imp: 3 },
+  zdravi: { label: 'Health', color: '#e5392f', g: 'cross', imp: 2 },
+  lekarna: { label: 'Pharmacy', color: '#3cb371', g: 'cross', imp: 1 },
+  skola: { label: 'School', color: '#f0a63a', g: 'S', imp: 2 },
+  knihovna: { label: 'Library', color: '#f0a63a', g: 'B', imp: 1 },
+  posta: { label: 'Post office', color: '#ececec', g: 'mail', imp: 3, dark: true },
+  banka: { label: 'Bank / ATM', color: '#3ca55c', g: '$', imp: 1 },
+  benzina: { label: 'Gas station', color: '#f08a24', g: 'pump', imp: 3 },
+  jidlo: { label: 'Food & drink', color: '#e8702a', g: 'fork', imp: 2 },
+  obchod: { label: 'Shop', color: '#3ca55c', g: '$', imp: 2 },
+  kostel: { label: 'Church', color: '#9a74d6', g: 'church', imp: 3 },
+  zricenina: { label: 'Castle / ruins', color: '#f2c230', g: 'castle', imp: 4, dark: true },
+  vyhlidka: { label: 'Viewpoint', color: '#2fb6c9', g: 'eye', imp: 2 },
+  ubytovani: { label: 'Lodging', color: '#c26bd8', g: 'H', imp: 2 },
+  muzeum: { label: 'Museum', color: '#f2c230', g: 'M', imp: 2, dark: true },
+  zajimavost: { label: 'Attraction', color: '#f2c230', g: 'star', imp: 2, dark: true },
+  pamatka: { label: 'Monument', color: '#9aa3ad', g: 'dot', imp: 1 },
+  sport: { label: 'Sports', color: '#3cb371', g: 'ball', imp: 1 },
+  vrchol: { label: 'Peak', color: '#a9754a', g: 'peak', imp: 2 },
+  vlak: { label: 'Station', color: '#3f7de0', g: 'T', imp: 3 },
+  kancelar: { label: 'Company / office', color: '#6e7fd1', g: 'F', imp: 1 },
+  remeslo: { label: 'Trade / services', color: '#d1893f', g: 'R', imp: 1 },
+  bus: { label: 'Bus stop', color: '#3f7de0', g: 'bus', imp: 1 },
 };
 function glyph(ctx, g, r, dark) {
   const f = dark ? '#111' : '#fff';
@@ -388,14 +388,14 @@ function makeLine(pts, ref, name, stopsXY, real) {
 (function buildBusLines() {
   const stops = POIS.filter((p) => p.k === 'bus');
   if (D.busRoutes && D.busRoutes.length) {
-    for (const r of D.busRoutes) { const pts = []; for (let k = 0; k < r.p.length; k += 2) pts.push([r.p[k], r.p[k + 1]]); const L = makeLine(pts, r.ref, r.n, r.stops.concat(stops), true); if (L) sim.lines.push(L); }
+    for (const r of D.busRoutes) { const pts = []; for (let k = 0; k < r.p.length; k += 2) pts.push([r.p[k], r.p[k + 1]]); const L = makeLine(pts, r.ref, r.n, r.stops.concat(stops), true); if (L && L.stops.length >= 2) sim.lines.push(L); }
   } else if (stops.length && G.xy.length) {
     sim.estimated = true; const A = nearestNode(stops[0].x, stops[0].y, 300); if (A < 0) return;
     let allow = (c) => c === 'major' || c === 'second' || c === 'tert'; let r1 = sssp(A, 2, allow);
     const reach = (r) => r.dist.reduce((n, d) => n + (isFinite(d) ? 1 : 0), 0); if (reach(r1) < 25) { allow = null; r1 = sssp(A, 2, null); }
     const far = (r) => { let bi = -1, bd = -1; r.dist.forEach((d, i) => { if (isFinite(d) && d > bd && d < 7000) { bd = d; bi = i; } }); return bi; };
     const T1 = far(r1); if (T1 < 0) return; const r2 = sssp(T1, 2, allow); const T2 = far(r2); if (T2 < 0 || T1 === T2) return;
-    const L = makeLine(pathTo(r2.prev, T2), '1', 'Autobus (odhad trasy)', stops, false); if (L) sim.lines.push(L);
+    const L = makeLine(pathTo(r2.prev, T2), '1', 'Bus (estimated route)', stops, false); if (L) sim.lines.push(L);
   }
   for (const L of sim.lines) { const n = L.len > 3000 ? 3 : 2; for (let i = 0; i < n; i++) sim.buses.push({ L, d: (L.len * i) / n, dir: i % 2 ? -1 : 1, v: 0, dwell: 2 + i * 3, last: null }); }
 })();
@@ -792,7 +792,7 @@ function frame(t) {
     const d2 = Math.min(0.05, (t - driving.last) / 1000); driving.last = t; const remain = route.len - driving.d, target = remain < 60 ? Math.max(6, remain / 3) : 24;
     driving.v += (target - driving.v) * Math.min(1, d2 * 1.8); driving.d = Math.min(route.len, driving.d + driving.v * d2); const [x, y, ang] = routeAt(driving.d); player.x = x; player.y = y; player.ang = ang;
     if (follow) { view.cx += (x - view.cx) * Math.min(1, d2 * 4); view.cy += (y - view.cy) * Math.min(1, d2 * 4); lastInteract = t; }
-    if (driving.d >= route.len - 0.5) { driving = null; $('#drive').textContent = '▶ Jeď'; toast('Dorazil jsi do cíle'); route = null; waypoint = null; $('#gps').classList.remove('on'); }
+    if (driving.d >= route.len - 0.5) { driving = null; $('#drive').textContent = '▶ Drive'; toast('You have arrived'); route = null; waypoint = null; $('#gps').classList.remove('on'); }
   }
   if (anim) { const k = clamp((t - anim.t0) / anim.dur, 0, 1), e = 1 - Math.pow(1 - k, 3); view.cx = anim.a.cx + (anim.b.cx - anim.a.cx) * e; view.cy = anim.a.cy + (anim.b.cy - anim.a.cy) * e; view.s = Math.exp(Math.log(anim.a.s) + (Math.log(anim.b.s) - Math.log(anim.a.s)) * e); if (k >= 1) anim = null; lastInteract = t; }
   const th = curTheme(), o = sceneOpts(), idle = t - lastInteract > 110 && !ptrs.size && !anim;
@@ -809,15 +809,15 @@ const touch = () => { lastInteract = performance.now(); };
 /* ------------------------------------------------------------------ routing UI */
 function routeAt(d) { const cum = route.cum; let i = 1; while (i < cum.length - 1 && cum[i] < d) i++; const a = route.pts[i - 1], b = route.pts[i], L = cum[i] - cum[i - 1] || 1, t = clamp((d - cum[i - 1]) / L, 0, 1); return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, Math.atan2(b[1] - a[1], b[0] - a[0])]; }
 function setWaypoint(x, y) {
-  const a = nearestNode(player.x, player.y, 400), b = nearestNode(x, y, 250); if (driving) { driving = null; $('#drive').textContent = '▶ Jeď'; }
-  if (a < 0 || b < 0) { toast('Tady nevede žádná silnice'); return; }
-  const r = sssp(a, 1, null, b); if (!isFinite(r.dist[b])) { toast('Trasa nenalezena'); return; } const pts = pathTo(r.prev, b);
+  const a = nearestNode(player.x, player.y, 400), b = nearestNode(x, y, 250); if (driving) { driving = null; $('#drive').textContent = '▶ Drive'; }
+  if (a < 0 || b < 0) { toast('No road here'); return; }
+  const r = sssp(a, 1, null, b); if (!isFinite(r.dist[b])) { toast('Route not found'); return; } const pts = pathTo(r.prev, b);
   const full = [[player.x, player.y], ...pts], cum = [0]; for (let i = 1; i < full.length; i++) cum.push(cum[i - 1] + Math.hypot(full[i][0] - full[i - 1][0], full[i][1] - full[i - 1][1]));
   const L = cum[cum.length - 1], time = L / 13.5; waypoint = { x: pts[pts.length - 1][0], y: pts[pts.length - 1][1] }; route = { pts: full, cum, len: L };
   $('#gpsInfo').textContent = `${L >= 1000 ? (L / 1000).toFixed(1).replace('.', ',') + ' km' : Math.round(L) + ' m'} · ${Math.max(1, Math.round(time / 60))} min`; $('#gps').classList.add('on');
 }
-function clearRoute() { if (driving) { driving = null; $('#drive').textContent = '▶ Jeď'; } route = null; waypoint = null; $('#gps').classList.remove('on'); }
-$('#drive').onclick = () => { if (!route) return; if (driving) { driving = null; $('#drive').textContent = '▶ Jeď'; return; } driving = { d: 0, v: 0, last: performance.now() }; follow = true; $('#drive').textContent = '❚❚ Stop'; flyTo(player.x, player.y, Math.max(view.s, 0.9)); };
+function clearRoute() { if (driving) { driving = null; $('#drive').textContent = '▶ Drive'; } route = null; waypoint = null; $('#gps').classList.remove('on'); }
+$('#drive').onclick = () => { if (!route) return; if (driving) { driving = null; $('#drive').textContent = '▶ Drive'; return; } driving = { d: 0, v: 0, last: performance.now() }; follow = true; $('#drive').textContent = '❚❚ Stop'; flyTo(player.x, player.y, Math.max(view.s, 0.9)); };
 $('#clear').onclick = clearRoute;
 
 /* ------------------------------------------------------------------ building info + hit tests */
@@ -829,9 +829,9 @@ function buildingAt(wx, wy) {
 function showCard(b) {
   state.selected = b; const card = $('#card'); if (!b) { card.classList.remove('on'); return; }
   if (!b.area) b.area = polyArea(b.p);
-  $('#cardT').textContent = b.t || 'Budova'; $('#cardH').textContent = b.n || b.a || b.t || 'Budova';
-  const rows = []; if (b.a) rows.push(['Adresa', b.a]); rows.push(['Výška', `~${Math.round(b.h)} m`]); if (b.l) rows.push(['Podlaží', b.l]); rows.push(['Zastavěno', `${Math.round(b.area)} m²`]);
-  const [lat, lon] = [D.lat0 + b.cy / D.ky, D.lon0 + b.cx / D.kx]; rows.push(['Poloha', `${lat.toFixed(5)}, ${lon.toFixed(5)}`]);
+  $('#cardT').textContent = b.t || 'Building'; $('#cardH').textContent = b.n || b.a || b.t || 'Building';
+  const rows = []; if (b.a) rows.push(['Address', b.a]); rows.push(['Height', `~${Math.round(b.h)} m`]); if (b.l) rows.push(['Floors', b.l]); rows.push(['Footprint', `${Math.round(b.area)} m²`]);
+  const [lat, lon] = [D.lat0 + b.cy / D.ky, D.lon0 + b.cx / D.kx]; rows.push(['Location', `${lat.toFixed(5)}, ${lon.toFixed(5)}`]);
   $('#cardD').innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join(''); card.classList.add('on');
 }
 $('#cardX').onclick = () => showCard(null);
@@ -878,10 +878,10 @@ let toastT; function toast(t) { const el = $('#toast'); el.textContent = t; el.c
 const SEARCH = [];
 (function buildIndex() {
   for (const p of POIS) if (p.n) SEARCH.push({ n: p.n, sub: KINDS[p.k].label, x: p.x, y: p.y, z: 1.8, k: p.k, id: p.id });
-  for (const p of PLACES) SEARCH.push({ n: p.n, sub: 'Sídlo', x: p.x, y: p.y, z: 0.9 });
-  for (const p of PEAKS) SEARCH.push({ n: p.n, sub: 'Vrchol', x: p.x, y: p.y, z: 1.2, k: 'vrchol' });
+  for (const p of PLACES) SEARCH.push({ n: p.n, sub: 'Place', x: p.x, y: p.y, z: 0.9 });
+  for (const p of PEAKS) SEARCH.push({ n: p.n, sub: 'Peak', x: p.x, y: p.y, z: 1.2, k: 'vrchol' });
   const st = new Map(); for (const r of ROADS) if (r.n && r.len > 20 && (!st.has(r.n) || st.get(r.n).len < r.len)) st.set(r.n, r);
-  for (const [n, r] of st) { const m = r.p.length / 4 | 0; SEARCH.push({ n, sub: 'Ulice', x: r.p[m * 2], y: r.p[m * 2 + 1], z: 1.2 }); }
+  for (const [n, r] of st) { const m = r.p.length / 4 | 0; SEARCH.push({ n, sub: 'Street', x: r.p[m * 2], y: r.p[m * 2 + 1], z: 1.2 }); }
   for (const b of BUILD) if (b.n || b.a) SEARCH.push({ n: b.n || b.a, sub: b.n && b.a ? b.a : b.t, x: b.cx, y: b.cy, z: 3.2, b });
   for (const s of SEARCH) s.q = norm(s.n + ' ' + (s.b && s.b.a || ''));
 })();
@@ -900,23 +900,23 @@ $('#q').addEventListener('keydown', (e) => {
 });
 
 /* ------------------------------------------------------------------ legend / UI */
-const ROAD_LABEL = { major: 'Silnice I. třídy', second: 'Silnice II. třídy', tert: 'Silnice III. třídy', minor: 'Ulice', service: 'Obslužná cesta', track: 'Polní / lesní cesta', path: 'Stezka' };
-const AREA_LABEL = { forest: 'Les', grass: 'Louka', farm: 'Pole', town: 'Zástavba', park: 'Park / zahrady', water: 'Voda', cemetery: 'Hřbitov', sport: 'Sport' };
+const ROAD_LABEL = { major: 'Primary road', second: 'Secondary road', tert: 'Tertiary road', minor: 'Street', service: 'Service road', track: 'Track', path: 'Path' };
+const AREA_LABEL = { forest: 'Forest', grass: 'Meadow', farm: 'Farmland', town: 'Built-up', park: 'Park / gardens', water: 'Water', cemetery: 'Cemetery', sport: 'Sports' };
 const fmtHour = (h) => `${String(Math.floor(h)).padStart(2, '0')}:${String(Math.floor((h % 1) * 60)).padStart(2, '0')}`;
 function updateClock() { const n = nightOf(state.hour), wi = { rain: '☂', snow: '❄', fog: '≋', clear: '' }[state.weather]; $('#cTime').textContent = fmtHour(state.hour); $('#cIco').textContent = wi || (n > 0.5 ? '☾' : '☀'); }
 function kindIcon(k) { const c = document.createElement('canvas'); c.width = c.height = 52; const x = c.getContext('2d'); x.scale(2, 2); blip(x, k, 13, 13, 10.5); return c; }
 const seg = (host, map, get, set) => { host.innerHTML = ''; for (const [k, l] of Object.entries(map)) { const b = document.createElement('button'); b.className = 'btn' + (get() === k ? ' on' : ''); b.textContent = l; b.onclick = () => { set(k); [...host.children].forEach((x) => x.classList.toggle('on', x === b)); invalidate(); }; host.appendChild(b); } };
 function setTheme(k) { state.theme = k; try { localStorage.setItem('gta-theme', k); } catch (e) {} applyUi(THEMES[k]); buildSwatches(); allocLayers(); }
 function buildLegend() {
-  $('#tName').textContent = D.name; $('#tSub').textContent = D.sub || ''; document.title = `${D.name} · GTA mapa`; $('#lSub').textContent = `${D.name} · ${POIS.length} míst · ${BUILD.length} budov`;
+  $('#tName').textContent = D.name; $('#tSub').textContent = D.sub || ''; document.title = `${D.name} · townyg`; $('#lSub').textContent = `${D.name} · ${POIS.length} places · ${BUILD.length} buildings`;
   const tw = $('#themes'); tw.innerHTML = ''; for (const k of THEME_ORDER) { if (D.styles && !D.styles[k]) continue; const b = document.createElement('button'); b.className = 'btn' + (k === state.theme ? ' on' : ''); b.innerHTML = `${THEMES[k].name}<br><small style="opacity:.7;letter-spacing:.06em">${THEMES[k].desc}</small>`; b.onclick = () => { setTheme(k); [...tw.children].forEach((x) => x.classList.toggle('on', x === b)); }; tw.appendChild(b); }
-  const tg = $('#toggles'); tg.innerHTML = ''; for (const [k, l] of [['extrude', '3D budovy'], ['relief', 'Reliéf'], ['trees', 'Stromy'], ['labels', 'Popisky'], ['roads', 'Názvy ulic']]) { const b = document.createElement('button'); b.className = 'btn' + (state.flags[k] ? ' on' : ''); b.textContent = l; b.onclick = () => { state.flags[k] = !state.flags[k]; b.classList.toggle('on', state.flags[k]); invalidate(); }; tg.appendChild(b); }
+  const tg = $('#toggles'); tg.innerHTML = ''; for (const [k, l] of [['extrude', '3D buildings'], ['relief', 'Relief'], ['trees', 'Trees'], ['labels', 'Labels'], ['roads', 'Street names']]) { const b = document.createElement('button'); b.className = 'btn' + (state.flags[k] ? ' on' : ''); b.textContent = l; b.onclick = () => { state.flags[k] = !state.flags[k]; b.classList.toggle('on', state.flags[k]); invalidate(); }; tg.appendChild(b); }
   seg($('#seasons'), SEASONS, () => state.season, (k) => { state.season = k; buildSwatches(); });
   seg($('#weather'), WEATHERS, () => state.weather, (k) => { state.weather = k; resetParticles(); updateClock(); });
-  const tt = $('#trafficTog'); tt.innerHTML = ''; for (const [k, l] of [['traffic', 'Auta a autobusy'], ['lines', 'Linky autobusů']]) { const b = document.createElement('button'); b.className = 'btn' + (state.flags[k] ? ' on' : ''); b.textContent = l; b.onclick = () => { state.flags[k] = !state.flags[k]; b.classList.toggle('on', state.flags[k]); invalidate(); }; tt.appendChild(b); }
-  $('#trafficNote').textContent = `Provoz se simuluje kolem pohledu (až ${sim.pool} aut) · autobusů: ${sim.buses.length} · zastávek: ${POIS.filter((p) => p.k === 'bus').length}.` + (sim.estimated ? ' OpenStreetMap tu neobsahuje autobusové linky, trasa je odhad po hlavních silnicích přes skutečné zastávky.' : '');
+  const tt = $('#trafficTog'); tt.innerHTML = ''; for (const [k, l] of [['traffic', 'Cars & buses'], ['lines', 'Bus lines']]) { const b = document.createElement('button'); b.className = 'btn' + (state.flags[k] ? ' on' : ''); b.textContent = l; b.onclick = () => { state.flags[k] = !state.flags[k]; b.classList.toggle('on', state.flags[k]); invalidate(); }; tt.appendChild(b); }
+  $('#trafficNote').textContent = `Traffic is simulated around the view (up to ${sim.pool} cars) · buses: ${sim.buses.length} · stops: ${POIS.filter((p) => p.k === 'bus').length}.` + (sim.estimated ? ' OpenStreetMap has no bus lines here, so the route is estimated along main roads through real stops.' : '');
   const hr = $('#hour'); hr.oninput = () => { state.hour = +hr.value; state.timeRun = false; $('#tplay').classList.remove('on'); $('#hourLbl').textContent = fmtHour(state.hour); updateClock(); invalidate(); };
-  $('#tplay').onclick = () => { state.timeRun = !state.timeRun; $('#tplay').classList.toggle('on', state.timeRun); $('#tplay').textContent = state.timeRun ? '❚❚ Zastavit' : '▶ Čas běží'; };
+  $('#tplay').onclick = () => { state.timeRun = !state.timeRun; $('#tplay').classList.toggle('on', state.timeRun); $('#tplay').textContent = state.timeRun ? '❚❚ Pause' : '▶ Run time'; };
   $('#tnow').onclick = () => { const d = new Date(); state.hour = d.getHours() + d.getMinutes() / 60; hr.value = state.hour; $('#hourLbl').textContent = fmtHour(state.hour); updateClock(); invalidate(); };
   const groups = {}; for (const p of POIS) (groups[p.k] = groups[p.k] || []).push(p); const host = $('#kinds'); host.innerHTML = '';
   for (const k of Object.keys(KINDS).filter((k) => groups[k])) {
@@ -924,7 +924,7 @@ function buildLegend() {
     const list = document.createElement('div'); list.className = 'places'; let filled = false;
     const fill = () => { if (filled) return; filled = true; for (const p of groups[k].sort((a, b) => (a.n || '').localeCompare(b.n || '', 'cs')).slice(0, 400)) { const it = document.createElement('div'); it.className = 'place'; it.innerHTML = `<span>${esc(p.n || KINDS[k].label)}</span><em>GPS</em>`; it.onclick = (e) => { if (e.target.tagName === 'EM') setWaypoint(p.x, p.y); flyTo(p.x, p.y, Math.max(view.s, 1.3)); state.pulse = { id: p.id, t: performance.now() }; if (window.innerWidth <= 820) $('#panel').classList.remove('open'); }; list.appendChild(it); } };
     row.onclick = (e) => { if (e.target.classList.contains('chev') || e.target.classList.contains('t')) { fill(); list.classList.toggle('open'); return; } state.hidden.has(k) ? state.hidden.delete(k) : state.hidden.add(k); row.classList.toggle('off', state.hidden.has(k)); invalidate(); };
-    row.title = 'Klik na ikonu = zobrazit/skrýt, na název = seznam míst'; host.append(row, list);
+    row.title = 'Click icon = show/hide, click name = list places'; host.append(row, list);
   }
   if (PEAKS.length) { const row = document.createElement('div'); row.className = 'kind'; row.appendChild(kindIcon('vrchol')); row.insertAdjacentHTML('beforeend', `<span class="t">Vrcholy</span><span class="c">${PEAKS.length}</span><span class="chev"></span>`); row.onclick = () => flyTo(PEAKS[0].x, PEAKS[0].y, 1); host.appendChild(row); }
   buildSwatches(); updateClock();
@@ -932,7 +932,7 @@ function buildLegend() {
 function buildSwatches() {
   const th = curTheme(), sw = $('#swatches'); sw.innerHTML = '';
   for (const k of ['forest', 'grass', 'farm', 'town', 'park', 'water', 'cemetery', 'sport']) { if (k !== 'water' && !AREAS[k]) continue; sw.insertAdjacentHTML('beforeend', `<div><i style="background:${th[k]}"></i>${AREA_LABEL[k]}</div>`); }
-  sw.insertAdjacentHTML('beforeend', `<div><i style="background:${th.roof}"></i>Budova</div><div><i style="background:transparent;border:1.5px dashed ${th.reserve}"></i>Chráněné území</div>`);
+  sw.insertAdjacentHTML('beforeend', `<div><i style="background:${th.roof}"></i>Building</div><div><i style="background:transparent;border:1.5px dashed ${th.reserve}"></i>Protected area</div>`);
   const rk = $('#roadkey'); rk.innerHTML = '';
   for (const cls of ['major', 'second', 'tert', 'minor', 'service', 'track', 'path']) {
     if (!ROADS.some((r) => r.c === cls)) continue; const c = document.createElement('canvas'); c.width = 88; c.height = 28; const x = c.getContext('2d'); x.scale(2, 2); x.lineCap = 'round'; const w = Math.max(2, ROAD[cls][0] * 0.75);
@@ -962,7 +962,7 @@ async function poster(key, opts = {}) {
   const rh = U * 0.036, bh = rh * rows.length + U * 0.012, by = lh - bh; x.fillStyle = 'rgba(8,10,14,.84)'; x.fillRect(0, by, lw, bh); x.fillStyle = u.accent; x.fillRect(0, by, lw, U * 0.003);
   rows.forEach((row, ri) => { let px = U * 0.025; const cy = by + U * 0.008 + rh * ri + rh / 2; for (const it of row) { blip(x, it.q, px + r, cy, r); x.fillStyle = '#fff'; x.textAlign = 'left'; x.fillText(it.lab, px + r * 2 + U * 0.006, cy); px += it.w + gap; } });
   x.textAlign = 'right'; x.fillStyle = u.accent; x.font = `600 ${U * 0.0145}px Oswald`; x.fillText(`${(D.styles && D.styles[key]) || base.name + ' · ' + base.desc}`.toUpperCase(), lw - U * 0.015, by + U * 0.022);
-  x.font = `400 ${U * 0.0085}px Oswald`; x.fillStyle = 'rgba(255,255,255,.8)'; x.fillText('© přispěvatelé OpenStreetMap (ODbL) · reliéf Mapzen Terrarium / AWS', lw - U * 0.015, lh - U * 0.012);
+  x.font = `400 ${U * 0.0085}px Oswald`; x.fillStyle = 'rgba(255,255,255,.8)'; x.fillText('© OpenStreetMap contributors (ODbL) · relief Mapzen Terrarium / AWS', lw - U * 0.015, lh - U * 0.012);
   return c;
 }
 async function exportPoster() { const c = await poster(state.theme, { season: state.season, hour: state.hour }); c.toBlob((b) => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `gta-mapa-${norm(D.name).replace(/[^a-z]/g, '')}-${state.theme}.png`; a.click(); }, 'image/png'); }

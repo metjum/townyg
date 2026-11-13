@@ -5,7 +5,7 @@ Usage:
     townyg                       # interactive full-screen wizard
     townyg "Černošín" [--area city|square] [--radius 2.5] [--max-size 18] [--styles all|gta5,sa,...] [--no-posters]
 
-Creates ~/Townyg/mapy/<city>/ with the interactive map (index.html), data, and one poster per style.
+Creates ~/Townyg/maps/<city>/ with the interactive map (index.html), data, and one poster per style.
 Steps: geocode (Nominatim) -> download OSM (Overpass) -> project to local meters ->
 classify (areas, roads, POIs, bus lines) -> hillshade from AWS Terrarium tiles -> write -> posters.
 """
@@ -20,7 +20,7 @@ B, DIM, GRN, YEL, CYN, RED, RST = _c(1), _c(2), _c(32), _c(33), _c(36), _c(31), 
 
 
 class Steps:
-    """Prints a numbered, timed progress log ("postup")."""
+    """Prints a numbered, timed progress log ("progress")."""
     def __init__(self, total):
         self.total, self.n, self.t0, self.t = total, 0, time.time(), time.time()
 
@@ -48,9 +48,27 @@ class Steps:
 LOG = Steps(9)
 
 STYLES = {
-    "gta5": "GTA V · Atlas", "radar": "GTA V · Radar (noc)", "sat": "GTA V · Satelit",
+    "gta5": "GTA V · Atlas", "radar": "GTA V · Radar (night)", "sat": "GTA V · Satellite",
     "sa": "San Andreas", "gta4": "GTA IV", "vc": "Vice City",
 }
+
+
+_EXTRA = str.maketrans({"ł": "l", "Ł": "L", "ø": "o", "Ø": "O", "đ": "d", "Đ": "D", "ß": "ss", "æ": "ae", "Æ": "AE", "œ": "oe", "Œ": "OE", "ı": "i"})
+
+
+def unaccent(s):
+    """Plain ASCII-ish text (no diacritics): the map fonts and the posters look cleaner without them."""
+    return "".join(c for c in unicodedata.normalize("NFKD", s.translate(_EXTRA)) if not unicodedata.combining(c))
+
+
+def plain(o):
+    if isinstance(o, str):
+        return unaccent(o)
+    if isinstance(o, dict):
+        return {k: plain(v) for k, v in o.items()}
+    if isinstance(o, list):
+        return [plain(v) if isinstance(v, (str, dict, list)) else v for v in o]
+    return o
 
 
 def slugify(name):
@@ -165,15 +183,15 @@ def plan_area(lat, lon, geo, mode, radius_km, max_km):
             big = [max(simp, key=lambda r: abs(area(r)))]
         km2 = sum(abs(area(r)) for r in big) / 1e6
         if km2 < 0.1 or not big:
-            LOG.warn("Nominatim vrátil nesmyslně malou hranici, používám čtverec 2,5 km")
+            LOG.warn("Nominatim returned an implausibly small boundary, using a 2.5 km square")
             ring_ll = []
         else:
             rings = [[round(c, 1) for p in r for c in p] for r in big]
-            LOG.info(f"obec: {raw_w / 1000:.1f} × {raw_h / 1000:.1f} km, ≈ {km2:.0f} km² "
-                     f"({len(big)} {'část' if len(big) == 1 else 'částí'}, {sum(len(r) // 2 for r in rings)} bodů hranice)")
+            LOG.info(f"municipality: {raw_w / 1000:.1f} × {raw_h / 1000:.1f} km, ≈ {km2:.0f} km² "
+                     f"({len(big)} {'part' if len(big) == 1 else 'parts'}, {sum(len(r) // 2 for r in rings)} boundary points)")
     if not ring_ll:
         if mode == "city" and not had_poly:
-            LOG.warn("Nominatim nevrátil polygon hranice obce (jen bod), používám čtverec 2,5 km (--area square)")
+            LOG.warn("Nominatim returned no boundary polygon (point only), using a 2.5 km square (--area square)")
         if mode == "city" or radius_km is None:
             radius_km = 2.5
         P = Proj(lat, lon)
@@ -182,8 +200,8 @@ def plan_area(lat, lon, geo, mode, radius_km, max_km):
         mode = "square"
     cap = max_km * 500.0
     if 2 * max(half_w, half_h) > max_km * 1000:
-        LOG.warn(f"město je {2 * half_w / 1000:.1f} × {2 * half_h / 1000:.1f} km, zkracuji na {max_km:g} km, "
-                 f"zvyš pomocí --max-size")
+        LOG.warn(f"town is {2 * half_w / 1000:.1f} × {2 * half_h / 1000:.1f} km, trimming to {max_km:g} km, "
+                 f"raise with --max-size")
         half_w, half_h = min(half_w, cap), min(half_h, cap)
     return {"P": P, "half_w": round(half_w, 1), "half_h": round(half_h, 1), "boundary": rings, "mode": mode,
             "km2": round(km2, 2)}
@@ -224,7 +242,7 @@ def overpass_query(bb, start=0):
                 d = http(ep, body, timeout=110)
                 j = json.loads(d)
                 if "elements" not in j or "error" in (j.get("remark") or "").lower():
-                    raise RuntimeError(j.get("remark") or "prázdná odpověď")
+                    raise RuntimeError(j.get("remark") or "empty response")
                 return j
             except Exception as ex:  # noqa
                 last = ex
@@ -232,7 +250,7 @@ def overpass_query(bb, start=0):
                     LOG.warn(f"{ep.split('/')[2]}: {str(ex)[:60]}")
                 time.sleep(2)
         time.sleep(15 * (attempt + 1))
-    raise RuntimeError(f"Overpass nedostupný: {last}")
+    raise RuntimeError(f"Overpass unavailable: {last}")
 
 
 def _fresh(path, days=7):
@@ -255,16 +273,16 @@ def fetch_osm(P, half_w, half_h, outdir):
         try:
             j = json.load(open(cache))
             if j.get("_qv") == QUERY_VERSION and j.get("_bbox") and _bbox_close(P, j["_bbox"], bbox):
-                LOG.info(f"používám cache {os.path.relpath(cache)} (méně než 7 dní stará)")
+                LOG.info(f"using cache {os.path.relpath(cache)} (less than 7 days old)")
                 return j, 0
-            LOG.info("cache je ze starší verze dotazu nebo jiné oblasti, stahuji znovu")
+            LOG.info("cache is from an older query version or a different area, downloading again")
         except Exception:  # noqa
             pass
     nx, ny = max(1, math.ceil(2 * half_w / TILE_M)), max(1, math.ceil(2 * half_h / TILE_M))
     tdir = os.path.join(outdir, "tiles")
     os.makedirs(tdir, exist_ok=True)
     total = nx * ny
-    LOG.info(f"oblast {2 * half_w / 1000:.1f} × {2 * half_h / 1000:.1f} km → {total} dlaždic ({nx} × {ny})")
+    LOG.info(f"area {2 * half_w / 1000:.1f} × {2 * half_h / 1000:.1f} km → {total} tiles ({nx} × {ny})")
     specs = []
     for j_ in range(ny):
         for i in range(nx):
@@ -285,7 +303,7 @@ def fetch_osm(P, half_w, half_h, outdir):
             except Exception:  # noqa
                 sp["tj"] = None
     if cached:
-        LOG.info(f"{cached}/{total} dlaždic už je v cache")
+        LOG.info(f"{cached}/{total} tiles already cached")
     todo = [sp for sp in specs if sp["tj"] is None]
     done = [0]
 
@@ -297,7 +315,7 @@ def fetch_osm(P, half_w, half_h, outdir):
         return sp, tj
 
     if todo:
-        LOG.info(f"stahuji {len(todo)} dlaždic, {min(PARALLEL, len(todo))} souběžně přes {len(ENDPOINTS)} zrcadel Overpassu")
+        LOG.info(f"downloading {len(todo)} tiles, {min(PARALLEL, len(todo))} in parallel across {len(ENDPOINTS)} Overpass mirrors")
         t_start = time.time()
         with ThreadPoolExecutor(max_workers=min(PARALLEL, len(todo))) as ex:
             futs = [ex.submit(work, sp) for sp in todo]
@@ -309,7 +327,7 @@ def fetch_osm(P, half_w, half_h, outdir):
                     el = time.time() - t_start
                     eta = el / done[0] * (len(todo) - done[0])
                     with _LOCK:
-                        LOG.info(f"dlaždice {done[0]}/{len(todo)} hotová · {_fmt(len(tj['elements']))} prvků · zbývá ≈ {eta / 60:.0f} min")
+                        LOG.info(f"tile {done[0]}/{len(todo)} done · {_fmt(len(tj['elements']))} elements · ≈ {eta / 60:.0f} min left")
             except BaseException:
                 for f in futs:
                     f.cancel()
@@ -322,7 +340,7 @@ def fetch_osm(P, half_w, half_h, outdir):
                 seen.add(key)
                 elements.append(el)
         sp["tj"] = None
-    LOG.info(f"celkem {_fmt(len(elements))} unikátních prvků")
+    LOG.info(f"{_fmt(len(elements))} unique elements in total")
     j = {"elements": elements, "_qv": QUERY_VERSION, "_bbox": bbox}
     json.dump(j, open(cache, "w"))
     return j, total
@@ -471,13 +489,13 @@ def centroid(ring):
     return sum(p[0] for p in ring[:n]) / n, sum(p[1] for p in ring[:n]) / n
 
 
-BUILD_CS = {"house": "Rodinný dům", "detached": "Rodinný dům", "residential": "Obytná budova", "apartments": "Bytový dům",
-            "terrace": "Řadový dům", "church": "Kostel", "chapel": "Kaple", "garage": "Garáž", "garages": "Garáže",
-            "industrial": "Průmyslová budova", "warehouse": "Sklad", "barn": "Stodola", "farm_auxiliary": "Hospodářská stavba",
-            "farm": "Statek", "school": "Škola", "public": "Veřejná budova", "civic": "Veřejná budova", "commercial": "Komerční budova",
-            "retail": "Obchod", "hotel": "Hotel", "shed": "Kůlna", "roof": "Přístřešek", "service": "Technická budova",
-            "kindergarten": "Školka", "hospital": "Nemocnice", "cabin": "Chata", "static_caravan": "Maringotka",
-            "greenhouse": "Skleník", "ruins": "Zřícenina", "yes": "Budova"}
+BUILD_CS = {"house": "House", "detached": "House", "residential": "Residential building", "apartments": "Apartment building",
+            "terrace": "Terraced house", "church": "Church", "chapel": "Chapel", "garage": "Garage", "garages": "Garages",
+            "industrial": "Industrial building", "warehouse": "Warehouse", "barn": "Barn", "farm_auxiliary": "Farm outbuilding",
+            "farm": "Farm", "school": "School", "public": "Public building", "civic": "Public building", "commercial": "Commercial building",
+            "retail": "Shop", "hotel": "Hotel", "shed": "Shed", "roof": "Shelter", "service": "Utility building",
+            "kindergarten": "Kindergarten", "hospital": "Hospital", "cabin": "Cabin", "static_caravan": "Caravan",
+            "greenhouse": "Greenhouse", "ruins": "Ruins", "yes": "Building"}
 
 
 def building_height(t):
@@ -523,7 +541,7 @@ def build_relief(P, half_w, half_h, step=4.0, z=None):
     for ty in range(ty0, ty1 + 1):
         for tx in range(tx0, tx1 + 1):
             cnt += 1
-            LOG.inline(f"dlaždice terénu {cnt}/{total_t}")
+            LOG.inline(f"terrain tile {cnt}/{total_t}")
             url = f"https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{tx}/{ty}.png"
             im = Image.open(io.BytesIO(http(url, timeout=60))).convert("RGB")
             a = np.asarray(im, dtype=np.float32)
@@ -647,7 +665,7 @@ def process(els, P, half_w, half_h):
                 ring = simplify(g)
                 if area(ring) < 0:
                     ring = ring[::-1]
-                b = {"p": line(ring), "h": round(building_height(t), 1), "t": BUILD_CS.get(t["building"], "Budova")}
+                b = {"p": line(ring), "h": round(building_height(t), 1), "t": BUILD_CS.get(t["building"], "Building")}
                 if t["building"] in ("church", "chapel", "cathedral") or t.get("amenity") == "place_of_worship":
                     b["c"] = 1
                 if t.get("name"):
@@ -760,7 +778,7 @@ def process(els, P, half_w, half_h):
                     ring = simplify([P(la, lo) for la, lo in r])
                     if area(ring) < 0:
                         ring = ring[::-1]
-                    buildings.append({"p": line(ring), "h": round(building_height(t), 1), "t": BUILD_CS.get(t["building"], "Budova")})
+                    buildings.append({"p": line(ring), "h": round(building_height(t), 1), "t": BUILD_CS.get(t["building"], "Building")})
                 continue
             if t.get("leisure") == "nature_reserve" or t.get("boundary") == "protected_area":
                 for r in orings:
@@ -791,18 +809,18 @@ def ensure_runtime():
         return rt
     npm = shutil.which("npm")
     if not npm:
-        LOG.warn("chybí node/npm (brew install node), plakáty přeskakuji")
+        LOG.warn("node/npm missing (brew install node), skipping posters")
         return None
     os.makedirs(rt, exist_ok=True)
     shutil.copy(os.path.join(PKG, "node", "package.json"), os.path.join(rt, "package.json"))
-    LOG.info("první spuštění: instaluji Chromium pro plakáty (jednorázově, ~150 MB)")
+    LOG.info("first run: installing Chromium for posters (one-time, ~150 MB)")
     for cmd in ([npm, "install", "--no-audit", "--no-fund", "--silent"], [npm, "exec", "--", "playwright", "install", "chromium"]):
         proc = subprocess.Popen(cmd, cwd=rt, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         for ln in proc.stdout:
             if ln.strip():
                 LOG.info(ln.rstrip()[:110])
         if proc.wait() != 0:
-            LOG.warn("instalace Chromia se nepovedla, plakáty přeskakuji")
+            LOG.warn("Chromium installation failed, skipping posters")
             return None
     open(os.path.join(rt, ".ready"), "w").write(VERSION)
     return rt
@@ -819,23 +837,23 @@ def render_posters(outdir, styles):
     for ln in proc.stdout:
         LOG.info(ln.rstrip())
     proc.wait()
-    return [s for s in styles if os.path.exists(os.path.join(outdir, "plakaty", f"{s}.png"))]
+    return [s for s in styles if os.path.exists(os.path.join(outdir, "posters", f"{s}.png"))]
 
 
 def write_gallery():
-    root = os.path.join(HERE, "mapy")
+    root = os.path.join(HERE, "maps")
     cards = []
     for d in sorted(os.listdir(root)):
         info = os.path.join(root, d, "info.json")
         if os.path.exists(info):
             i = json.load(open(info))
-            thumb = next((f"{d}/plakaty/{s}.png" for s in ("gta5", "vc", "sa") if os.path.exists(os.path.join(root, d, "plakaty", f"{s}.png"))), "")
-            cards.append(f'<a href="{d}/index.html"><img src="{thumb}" alt=""><b>{i["name"]}</b><span>{i.get("sub", "")} · {i["generated"]}</span></a>')
-    html = ('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GTA mapy</title>'
+            thumb = next((f"{d}/posters/{s}.png" for s in ("gta5", "vc", "sa") if os.path.exists(os.path.join(root, d, "posters", f"{s}.png"))), "")
+            cards.append(f'<a href="{d}/index.html"><img src="{thumb}" alt=""><b>{unaccent(i["name"])}</b><span>{unaccent(i.get("sub", ""))} · {i["generated"]}</span></a>')
+    html = ('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GTA maps</title>'
             '<style>body{margin:0;background:#0b0d11;color:#fff;font:15px system-ui,sans-serif;padding:32px}h1{font:400 40px Impact,sans-serif;letter-spacing:.04em;text-transform:uppercase}'
             '.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}a{color:#fff;text-decoration:none;background:#151922;border-radius:6px;overflow:hidden;display:grid}'
             'a img{width:100%;aspect-ratio:1;object-fit:cover;background:#222}a b{padding:10px 12px 0;font-size:18px}a span{padding:2px 12px 12px;color:#9aa3ad;font-size:13px}a:hover{outline:2px solid #f1c232}</style>'
-            f'<h1>GTA mapy</h1><div class="g">{"".join(cards)}</div>')
+            f'<h1>GTA maps</h1><div class="g">{"".join(cards)}</div>')
     open(os.path.join(root, "index.html"), "w").write(html)
 
 
@@ -914,7 +932,7 @@ def compose(big=False):
         pw = len(PALM_SMALL[0])
         for i in range(5):
             rows.append(_grad(PALM_SMALL[i], i, 5, 0) + "  " + _grad(t[i], i, 5, pw))
-        rows.append(f"{DIM}{' ' * (pw + 2)}GTA V · IV · Vice City · San Andreas z OpenStreetMap{RST}")
+        rows.append(f"{DIM}{' ' * (pw + 2)}GTA V · IV · Vice City · San Andreas from OpenStreetMap{RST}")
     return rows
 
 
@@ -986,7 +1004,7 @@ class TUI:
         out = ["\033[H\033[2J"]
         lines = [""] + ["  " + r for r in self.banner()] + [""]
         if _NEWER:
-            lines = lines[:-1] + [f"  {YEL}↑ nová verze {_NEWER}{RST} {DIM}(máš {VERSION}) · ukonči a spusť: townyg update{RST}", ""]
+            lines = lines[:-1] + [f"  {YEL}↑ new version {_NEWER}{RST} {DIM}(you have {VERSION}) · quit and run: townyg update{RST}", ""]
         for lab, val in self.history:
             lines.append(f"  {GRN}✔{RST} {DIM}{lab}{RST}  {val}")
         if self.history:
@@ -1014,7 +1032,7 @@ class TUI:
         cur = 0
         if not multi and selected:
             cur = next((i for i, (v, _) in enumerate(items) if v == next(iter(sel))), 0)
-        hint = hint or ("↑↓ pohyb · mezerník výběr · a vše/nic · Enter potvrdit · Esc zrušit" if multi else "↑↓ pohyb · Enter potvrdit · Esc zrušit")
+        hint = hint or ("↑↓ move · Space select · a all/none · Enter confirm · Esc cancel" if multi else "↑↓ move · Enter confirm · Esc cancel")
         while True:
             body = []
             for i, (v, lab) in enumerate(items):
@@ -1047,7 +1065,7 @@ class TUI:
         self.history.append((label, re.sub(r"\033\[[0-9;]*m", "", shown)))
         return res
 
-    def ask(self, label, title, hint="Piš název · Enter potvrdit · Esc zrušit", example="Černošín"):
+    def ask(self, label, title, hint="Type a name · Enter confirm · Esc cancel", example="Černošín"):
         buf = ""
         while True:
             shown = buf if buf else f"{DIM}{example}{RST}"
@@ -1067,7 +1085,7 @@ class TUI:
 
 
 def _existing_cities():
-    root = os.path.join(HERE, "mapy")
+    root = os.path.join(HERE, "maps")
     out = []
     if os.path.isdir(root):
         for d in sorted(os.listdir(root)):
@@ -1082,9 +1100,9 @@ def _existing_cities():
 
 def area_text(a):
     if (a.area or "city") == "city":
-        return "oblast: celé město (hranice obce)"
+        return "area: whole town (municipal boundary)"
     r = a.radius if a.radius is not None else 2.5
-    return f"oblast: čtverec {2 * r:g}×{2 * r:g} km"
+    return f"area: {2 * r:g}×{2 * r:g} km square"
 
 
 def wizard(t, a, need_city, need_styles, need_area=False):
@@ -1094,50 +1112,50 @@ def wizard(t, a, need_city, need_styles, need_area=False):
         cities = _existing_cities()
         choice = "new"
         if cities:
-            items = [("new", "✚  Nové město")] + [(c["name"], f"↻  Znovu vygenerovat: {c['name']}  {DIM}({c.get('generated', '')}){RST}") for c in cities]
-            choice = t.menu("Akce", "Co chceš udělat?", items)
+            items = [("new", "✚  New town")] + [(c["name"], f"↻  Regenerate: {c['name']}  {DIM}({c.get('generated', '')}){RST}") for c in cities]
+            choice = t.menu("Action", "What do you want to do?", items)
         if cities:
             t.history.pop()
         if choice == "new":
-            a.city = t.ask("Město", "Název města nebo obce")
+            a.city = t.ask("Town", "Town or village name")
         else:
             a.city = choice
-            t.history.append(("Město", choice))
+            t.history.append(("Town", choice))
     if need_city or need_area:
-        a.area = t.menu("Oblast", "Jak velká oblast?", [
-            ("city", "Celé město (hranice obce)  – doporučeno"),
-            ("square", "Čtverec kolem centra"),
+        a.area = t.menu("Area", "How large an area?", [
+            ("city", "Whole town (municipal boundary)  – recommended"),
+            ("square", "Square around the centre"),
         ], selected={"city"})
     if (need_city or need_area) and a.area == "square":
-        a.radius = float(t.menu("Velikost", "Velikost čtverce", [
-            ("1.5", "Malá     3 × 3 km   – městečko, rychlé"),
-            ("2.5", "Střední  5 × 5 km   – doporučeno"),
-            ("4", "Velká    8 × 8 km   – delší stahování"),
-            ("6", "Obří     12 × 12 km – dlouhé stahování"),
+        a.radius = float(t.menu("Size", "Square size", [
+            ("1.5", "Small    3 × 3 km   – small town, fast"),
+            ("2.5", "Medium   5 × 5 km   – recommended"),
+            ("4", "Large    8 × 8 km   – longer download"),
+            ("6", "Huge     12 × 12 km – long download"),
         ], selected={"2.5"}))
     if need_styles:
-        games = t.menu("Hry", "Které GTA mapy vygenerovat?", [
-            ("gta5", "GTA V           světlá pauza mapa, radar, satelit"),
-            ("gta4", "GTA IV          Liberty City, šedé a ostré"),
-            ("vc", "Vice City       pastelová neonová osmdesátá"),
-            ("sa", "San Andreas    ploché, malované"),
+        games = t.menu("Games", "Which GTA maps to generate?", [
+            ("gta5", "GTA V           light pause-menu map, radar, satellite"),
+            ("gta4", "GTA IV          Liberty City, grey and sharp"),
+            ("vc", "Vice City       pastel neon eighties"),
+            ("sa", "San Andreas    flat, painted"),
         ], multi=True, selected={"gta5", "gta4", "vc", "sa"})
         styles = []
         if "gta5" in games:
-            styles += t.menu("GTA V", "GTA V – které varianty?", [
-                ("gta5", "Atlas      světlá mapa z pauzy"),
-                ("radar", "Radar      tmavý noční"),
-                ("sat", "Satelit    ortofoto look"),
+            styles += t.menu("GTA V", "GTA V – which variants?", [
+                ("gta5", "Atlas      light pause-menu map"),
+                ("radar", "Radar      dark night"),
+                ("sat", "Satellite  orthophoto look"),
             ], multi=True, selected={"gta5", "radar", "sat"})
         styles += [g for g in ("gta4", "vc", "sa") if g in games]
         a.styles = ",".join(styles)
-        opts = t.menu("Volby", "Další volby", [
-            ("posters", "Renderovat plakáty (PNG 4096 px)"),
-            ("open", "Po dokončení otevřít mapu v prohlížeči"),
+        opts = t.menu("Options", "More options", [
+            ("posters", "Render posters (PNG 4096 px)"),
+            ("open", "Open the map in the browser when done"),
         ], multi=True, selected={"posters", "open"})
         a.no_posters = "posters" not in opts
         a.open = "open" in opts
-    if t.menu("Start", "Spustit generování?", [("go", "▶ Spustit"), ("no", "✕ Zrušit")]) == "no":
+    if t.menu("Start", "Start generating?", [("go", "▶ Start"), ("no", "✕ Cancel")]) == "no":
         raise KeyboardInterrupt
 
 
@@ -1174,32 +1192,32 @@ def update_available():
 def self_update():
     brew = shutil.which("brew")
     if brew and "/Cellar/townyg/" in os.path.realpath(__file__):
-        print(f"{B}townyg {VERSION}{RST} · aktualizuji přes Homebrew")
+        print(f"{B}townyg {VERSION}{RST} · updating via Homebrew")
         subprocess.run([brew, "update"])
         sys.exit(subprocess.run([brew, "upgrade", "townyg"]).returncode)
     v = update_available()
     if not v:
-        print(f"townyg {VERSION} je aktuální.")
+        print(f"townyg {VERSION} is up to date.")
     else:
-        print(f"Je dostupná verze {v} (máš {VERSION}). Instalace z brew: brew upgrade townyg · z gitu: git pull")
+        print(f"Version {v} is available (you have {VERSION}). Install via brew: brew upgrade townyg · via git: git pull")
     sys.exit(0)
 
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] in ("update", "upgrade"):
         self_update()
-    ap = argparse.ArgumentParser(prog="townyg", description="Generátor GTA map z OpenStreetMap")
+    ap = argparse.ArgumentParser(prog="townyg", description="GTA-style map generator from OpenStreetMap")
     ap.add_argument("--version", action="version", version="townyg " + VERSION)
-    ap.add_argument("city", nargs="?", help="název města; bez něj se spustí interaktivní průvodce")
+    ap.add_argument("city", nargs="?", help="town name; without it the interactive wizard starts")
     ap.add_argument("--area", choices=("city", "square"), default=None,
-                    help="city = celé město podle hranice obce (výchozí), square = čtverec kolem centra")
-    ap.add_argument("--radius", type=float, default=None, help="polovina strany čtverce v km (výchozí 2.5; implikuje --area square)")
-    ap.add_argument("--max-size", type=float, default=18.0, help="max. delší strana oblasti v km (výchozí 18)")
-    ap.add_argument("--styles", default=None, help="all nebo seznam: " + ",".join(STYLES))
-    ap.add_argument("-y", "--yes", action="store_true", help="neptat se, použít výchozí hodnoty")
-    ap.add_argument("--no-posters", action="store_true", help="přeskočit renderování plakátů")
+                    help="city = whole town by municipal boundary (default), square = square around the centre")
+    ap.add_argument("--radius", type=float, default=None, help="half of the square side in km (default 2.5; implies --area square)")
+    ap.add_argument("--max-size", type=float, default=18.0, help="max. longer side of the area in km (default 18)")
+    ap.add_argument("--styles", default=None, help="all or a list: " + ",".join(STYLES))
+    ap.add_argument("-y", "--yes", action="store_true", help="do not ask, use defaults")
+    ap.add_argument("--no-posters", action="store_true", help="skip poster rendering")
     ap.add_argument("--no-relief", action="store_true")
-    ap.add_argument("--open", action="store_true", help="po dokončení otevřít mapu v prohlížeči")
+    ap.add_argument("--open", action="store_true", help="open the map in the browser when done")
     a = ap.parse_args()
     interactive = sys.stdin.isatty() and sys.stdout.isatty() and not a.yes
     if a.area is None and a.radius is not None:
@@ -1216,12 +1234,12 @@ def main():
             wizard(tui, a, need_city, need_styles, need_area)
         except KeyboardInterrupt:
             tui.__exit__()
-            sys.exit("Zrušeno.")
+            sys.exit("Cancelled.")
     result = None
     try:
         result = run(a, ap, tui)
     except KeyboardInterrupt:
-        msg = "Přerušeno."
+        msg = "Interrupted."
     except SystemExit as ex:
         msg = str(ex.code) if ex.code not in (None, 0) else ""
     else:
@@ -1229,9 +1247,9 @@ def main():
     if tui:
         k = ""
         if result:
-            sys.stdout.write(f"\n  {GRN}✔{RST} {B}Hotovo{RST}   {DIM}O = otevřít mapu · jiná klávesa = zavřít{RST}")
+            sys.stdout.write(f"\n  {GRN}✔{RST} {B}Done{RST}   {DIM}O = open map · any other key = close{RST}")
         else:
-            sys.stdout.write(f"\n  {RED}✘{RST} {msg or 'Něco se nepovedlo.'}   {DIM}Stiskni klávesu pro zavření{RST}")
+            sys.stdout.write(f"\n  {RED}✘{RST} {msg or 'Something went wrong.'}   {DIM}Press any key to close{RST}")
         sys.stdout.flush()
         try:
             k = tui.key()
@@ -1243,79 +1261,79 @@ def main():
     elif not result and msg:
         sys.exit(msg)
     if result:
-        print(f"{B}Výstup:{RST}\n  mapa:    {os.path.join(result, 'index.html')}\n  plakáty: {os.path.join(result, 'plakaty')}")
+        print(f"{B}Output:{RST}\n  map:     {os.path.join(result, 'index.html')}\n  posters: {os.path.join(result, 'posters')}")
     elif tui and msg:
         print(msg)
 
 
 def run(a, ap, tui):
     if not a.city:
-        ap.error("chybí název města (nebo spusť v terminálu bez parametrů pro průvodce)")
+        ap.error("missing town name (or run in a terminal without arguments for the wizard)")
     if a.styles is None:
         a.styles = "all"
     if a.area is None:
         a.area = "city"
     styles = list(STYLES) if a.styles == "all" else [s for s in a.styles.split(",") if s in STYLES]
     if not styles:
-        sys.exit("Neznámé styly. Dostupné: " + ", ".join(STYLES))
+        sys.exit("Unknown styles. Available: " + ", ".join(STYLES))
 
     t0 = time.time()
     summary = f"{a.city} · {area_text(a)} · {', '.join(STYLES[x] for x in styles)}"
     if tui:
         tui.start_run(summary)
     else:
-        print(f"{B}townyg{RST} · {a.city}  {DIM}({area_text(a)}, styly: {', '.join(styles)}){RST}")
+        print(f"{B}townyg{RST} · {a.city}  {DIM}({area_text(a)}, styles: {', '.join(styles)}){RST}")
 
-    LOG.start("Hledám obec (Nominatim)")
+    LOG.start("Looking up the town (Nominatim)")
     lat0, lon0, geo = geocode(a.city)
     LOG.done(f"{lat0:.5f}, {lon0:.5f} – {geo['display_name']}")
     plan = plan_area(lat0, lon0, geo, a.area, a.radius, a.max_size)
     P, half_w, half_h = plan["P"], plan["half_w"], plan["half_h"]
     half = max(half_w, half_h)
-    LOG.info(f"oblast mapy: {2 * half_w / 1000:.1f} × {2 * half_h / 1000:.1f} km (režim {plan['mode']})")
+    LOG.info(f"map area: {2 * half_w / 1000:.1f} × {2 * half_h / 1000:.1f} km (mode {plan['mode']})")
 
-    LOG.start("Připravuji složku")
+    LOG.start("Preparing folder")
     slug = slugify(a.city)
-    outdir = os.path.join(HERE, "mapy", slug)
-    os.makedirs(os.path.join(outdir, "plakaty"), exist_ok=True)
-    LOG.done(f"mapy/{slug}/")
+    outdir = os.path.join(HERE, "maps", slug)
+    os.makedirs(os.path.join(outdir, "posters"), exist_ok=True)
+    LOG.done(f"maps/{slug}/")
 
-    LOG.start("Stahuji data z OpenStreetMap po dlaždicích (Overpass)")
+    LOG.start("Downloading OpenStreetMap data in tiles (Overpass)")
     t_dl = time.time()
     try:
         osm, ntiles = fetch_osm(P, half_w, half_h, outdir)
     except (RuntimeError, KeyboardInterrupt) as ex:
-        sys.exit(f"Stahování se nepovedlo: {ex} – hotové dlaždice zůstaly v cache, stačí spustit znovu.")
-    LOG.done(f"{_fmt(len(osm['elements']))} prvků" + (f", {ntiles} dlaždic, {time.time() - t_dl:.0f} s" if ntiles else " (z cache)"))
+        sys.exit(f"Download failed: {ex} – finished tiles stay cached, just run again.")
+    LOG.done(f"{_fmt(len(osm['elements']))} elements" + (f", {ntiles} tiles, {time.time() - t_dl:.0f} s" if ntiles else " (from cache)"))
 
-    LOG.start("Zpracovávám: plochy, silnice, budovy, místa, autobusy")
+    LOG.start("Processing: areas, roads, buildings, places, buses")
     layers = process(osm["elements"], P, half_w, half_h)
-    LOG.info(f"budov {len(layers['buildings'])} · silnic {len(layers['roads'])} · vodních toků {len(layers['waters'])} · "
-             f"míst {len(layers['pois'])} · ploch {sum(len(v) for v in layers['areas'].values())}")
+    LOG.info(f"buildings {len(layers['buildings'])} · roads {len(layers['roads'])} · waterways {len(layers['waters'])} · "
+             f"places {len(layers['pois'])} · areas {sum(len(v) for v in layers['areas'].values())}")
     if layers["busRoutes"]:
-        LOG.info(f"autobusových linek v OSM: {len(layers['busRoutes'])}")
+        LOG.info(f"bus lines in OSM: {len(layers['busRoutes'])}")
     else:
-        LOG.warn("OSM neobsahuje autobusové linky – trasu odvodím ze zastávek po silnicích")
-    LOG.done("hotovo")
+        LOG.warn("OSM has no bus lines – deriving the route from stops along roads")
+    LOG.done("done")
 
-    LOG.start("Stahuji terén a počítám stínovaný reliéf (AWS Terrarium)")
+    LOG.start("Downloading terrain and computing hillshade relief (AWS Terrarium)")
     relief = None
     if not a.no_relief:
         try:
             step = max(4.0, math.ceil(max(2 * half_w, 2 * half_h) / 3200))
             relief = build_relief(P, half_w, half_h, step=step)
-            LOG.done(f"výška {relief['hmin']:.0f}–{relief['hmax']:.0f} m n. m.")
+            LOG.done(f"elevation {relief['hmin']:.0f}–{relief['hmax']:.0f} m a.s.l.")
         except Exception as ex:  # noqa
-            LOG.warn(f"reliéf se nepodařilo vytvořit: {ex}")
+            LOG.warn(f"could not build relief: {ex}")
     else:
-        LOG.done("přeskočeno (--no-relief)")
+        LOG.done("skipped (--no-relief)")
 
-    LOG.start("Zapisuji data mapy")
+    LOG.start("Writing map data")
     parts = [p.strip() for p in geo["display_name"].split(",")]
     sub = " · ".join(p for p in parts[1:4] if not re.fullmatch(r"[\d ]+", p))
-    data = {"name": a.city, "sub": sub, "lat0": P.lat0, "lon0": P.lon0, "half": half, "halfW": half_w, "halfH": half_h,
+    data = {"name": unaccent(a.city), "sub": unaccent(sub), "lat0": P.lat0, "lon0": P.lon0, "half": half, "halfW": half_w, "halfH": half_h,
             "kx": P.kx, "ky": P.ky, "boundary": plan["boundary"], "area": {"mode": plan["mode"], "km2": plan["km2"]},
-            **layers, "relief": relief, "generated": time.strftime("%Y-%m-%d"),
+            **plain(layers), "relief": relief, "generated": time.strftime("%Y-%m-%d"),
             "styles": {k: STYLES[k] for k in styles}, "defaultStyle": styles[0]}
     with open(os.path.join(outdir, "data.js"), "w") as f:
         f.write("window.MAPDATA=" + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";")
@@ -1324,23 +1342,23 @@ def run(a, ap, tui):
               open(os.path.join(outdir, "info.json"), "w"), ensure_ascii=False, indent=1)
     LOG.done(f"data.js {os.path.getsize(os.path.join(outdir, 'data.js')) / 1e6:.2f} MB")
 
-    LOG.start("Kopíruji šablonu mapy (index.html, app.js)")
+    LOG.start("Copying map template (index.html, app.js)")
     for fn in ("index.html", "app.js"):
         shutil.copy(os.path.join(PKG, "template", fn), os.path.join(outdir, fn))
-    LOG.done("šablona zkopírována")
+    LOG.done("template copied")
 
-    LOG.start(f"Renderuji plakáty ({len(styles)} stylů)")
+    LOG.start(f"Rendering posters ({len(styles)} styles)")
     if a.no_posters:
-        LOG.done("přeskočeno (--no-posters)")
+        LOG.done("skipped (--no-posters)")
     else:
         made = render_posters(outdir, styles)
-        LOG.done(f"{len(made)}/{len(styles)} plakátů v mapy/{slug}/plakaty/")
+        LOG.done(f"{len(made)}/{len(styles)} posters in maps/{slug}/posters/")
 
-    LOG.start("Aktualizuji galerii měst")
+    LOG.start("Updating town gallery")
     write_gallery()
-    LOG.done("mapy/index.html")
+    LOG.done("maps/index.html")
 
-    print(f"\n{B}{GRN}Hotovo{RST} za {time.time() - t0:.0f} s")
+    print(f"\n{B}{GRN}Done{RST} in {time.time() - t0:.0f} s")
     if a.open:
         subprocess.run(["open", os.path.join(outdir, "index.html")])
     return outdir

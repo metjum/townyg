@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="cs">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GTA mapa</title>
+<title>townyg</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Lilita+One&family=Oswald:wght@400;500;600;700&family=Pacifico&display=swap&subset=latin-ext" rel="stylesheet">
@@ -127,51 +127,51 @@
   <div id="stage">
     <canvas id="map"></canvas>
     <div id="title"><h1 id="tName">…</h1><div class="sub" id="tSub"></div><br><div id="clock"><i id="cIco">☀</i><span id="cTime">13:00</span></div></div>
-    <div id="search"><input id="q" type="search" placeholder="Hledat ulici, místo, budovu…  ( / )" autocomplete="off"><div id="results"></div></div>
+    <div id="search"><input id="q" type="search" placeholder="Search street, place, building…  ( / )" autocomplete="off"><div id="results"></div></div>
     <div id="zoom">
-      <button class="btn" id="zin" aria-label="Přiblížit">+</button>
-      <button class="btn" id="zout" aria-label="Oddálit">−</button>
-      <button class="btn" id="home" aria-label="Domů" title="Domů">⌂</button>
-      <button class="btn" id="togglePanel" aria-label="Legenda" title="Legenda">≡</button>
+      <button class="btn" id="zin" aria-label="Zoom in">+</button>
+      <button class="btn" id="zout" aria-label="Zoom out">−</button>
+      <button class="btn" id="home" aria-label="Home" title="Home">⌂</button>
+      <button class="btn" id="togglePanel" aria-label="Legend" title="Legend">≡</button>
     </div>
-    <div id="card"><button id="cardX" aria-label="Zavřít">×</button><div class="t" id="cardT"></div><h4 id="cardH"></h4><dl id="cardD"></dl></div>
-    <div id="gps"><div><small>GPS trasa</small><b id="gpsInfo"></b></div>
-      <button class="btn" id="drive">▶ Jeď</button><button class="btn" id="clear">✕</button></div>
+    <div id="card"><button id="cardX" aria-label="Close">×</button><div class="t" id="cardT"></div><h4 id="cardH"></h4><dl id="cardD"></dl></div>
+    <div id="gps"><div><small>GPS route</small><b id="gpsInfo"></b></div>
+      <button class="btn" id="drive">▶ Drive</button><button class="btn" id="clear">✕</button></div>
     <div id="coords"></div>
-    <div id="attr">© přispěvatelé OpenStreetMap (ODbL) · reliéf Mapzen Terrarium / AWS</div>
+    <div id="attr">© OpenStreetMap contributors (ODbL) · relief Mapzen Terrarium / AWS</div>
     <div id="tip"></div>
     <div id="toast"></div>
   </div>
   <aside id="panel">
-    <header><h2>Legenda</h2><p id="lSub"></p></header>
+    <header><h2>Legend</h2><p id="lSub"></p></header>
     <div id="scroll">
-      <div class="sec"><h3>Styl mapy</h3>
+      <div class="sec"><h3>Map style</h3>
         <div class="grid3" id="themes"></div>
         <div class="grid2" id="toggles"></div>
       </div>
-      <div class="sec"><h3>Prostředí</h3>
-        <div class="lbl"><span>Čas</span><b id="hourLbl">14:00</b></div>
+      <div class="sec"><h3>Environment</h3>
+        <div class="lbl"><span>Time</span><b id="hourLbl">14:00</b></div>
         <input id="hour" type="range" min="0" max="24" step="0.25" value="14">
-        <div class="grid2"><button class="btn" id="tplay">▶ Čas běží</button><button class="btn" id="tnow">Teď</button></div>
-        <div class="lbl"><span>Roční období</span></div>
+        <div class="grid2"><button class="btn" id="tplay">▶ Run time</button><button class="btn" id="tnow">Now</button></div>
+        <div class="lbl"><span>Season</span></div>
         <div class="grid4" id="seasons"></div>
-        <div class="lbl"><span>Počasí</span></div>
+        <div class="lbl"><span>Weather</span></div>
         <div class="grid4" id="weather"></div>
       </div>
-      <div class="sec"><h3>Provoz</h3>
+      <div class="sec"><h3>Traffic</h3>
         <div class="grid2" id="trafficTog"></div>
         <p class="note" id="trafficNote"></p>
       </div>
-      <div class="sec"><h3>Místa</h3></div>
+      <div class="sec"><h3>Places</h3></div>
       <div id="kinds"></div>
-      <div class="sec"><h3>Terén</h3><div class="sw" id="swatches"></div><div class="roadkey" id="roadkey"></div></div>
-      <div class="sec"><h3>Ovládání</h3></div>
+      <div class="sec"><h3>Terrain</h3><div class="sw" id="swatches"></div><div class="roadkey" id="roadkey"></div></div>
+      <div class="sec"><h3>Controls</h3></div>
       <div class="help">
-        Tažení = posun · kolečko / štípnutí = zoom<br>
-        <kbd>klik</kbd> na budovu = informace · <kbd>/</kbd> hledání<br>
-        <kbd>dvojklik</kbd> = waypoint a GPS trasa z tvojí pozice<br>
-        <kbd>▶ Jeď</kbd> = projedeš trasu · <kbd>Esc</kbd> zruší<br>
-        <button class="btn" id="export" style="margin-top:10px">⬇ Export plakátu (PNG)</button>
+        Drag = pan · wheel / pinch = zoom<br>
+        <kbd>click</kbd> a building = info · <kbd>/</kbd> search<br>
+        <kbd>double-click</kbd> = waypoint and GPS route from your position<br>
+        <kbd>▶ Drive</kbd> = drive the route · <kbd>Esc</kbd> cancels<br>
+        <button class="btn" id="export" style="margin-top:10px">⬇ Export poster (PNG)</button>
       </div>
     </div>
   </aside>

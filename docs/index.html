@@ -42,6 +42,14 @@ h2 span{color:var(--pink)}
 .card h3{margin:0 0 6px;font:500 18px Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase}
 .card p{margin:0;color:var(--mute);font-size:15px}
 .card .n{font:400 34px Anton,sans-serif;color:var(--orange);margin-bottom:6px}
+.demos{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.demo{display:block;background:var(--bg2);border:1px solid var(--line);border-radius:14px;overflow:hidden;text-decoration:none;transition:.15s}
+.demo:hover{border-color:var(--pink);transform:translateY(-3px)}
+.demo img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
+.demo div{padding:14px 18px 16px;display:grid;gap:2px}
+.demo b{font:400 26px Anton,sans-serif;letter-spacing:.05em;text-transform:uppercase}
+.demo span{color:var(--mute);font-size:14px}
+.demo i{font:500 14px Oswald,sans-serif;font-style:normal;letter-spacing:.1em;text-transform:uppercase;color:var(--pink);margin-top:6px}
 .posters{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
 .posters figure{margin:0;background:var(--bg2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .posters img{display:block;width:100%;height:auto}
@@ -58,19 +66,35 @@ footer a{color:var(--ink)}
 </head>
 <body>
 <div class="wrap">
-  <nav><b>townyg</b><div><a href="#install">Install</a><a href="#looks">Looks</a><a href="#how">How it works</a><a href="https://github.com/metjum/townyg">GitHub</a></div></nav>
+  <nav><b>townyg</b><div><a href="#demo">Live demo</a><a href="#install">Install</a><a href="#looks">Looks</a><a href="#how">How it works</a><a href="https://github.com/metjum/townyg">GitHub</a></div></nav>
 
   <header class="hero">
     <h1>townyg</h1>
     <p class="tag">Your town. Rockstar style.</p>
     <p class="sub">Type a town, get an interactive GTA-style map and a print-ready poster. Real streets, real buildings, real shop names, built from open data.</p>
     <div class="cmd"><span><i>$</i> brew install metjum/townyg/townyg</span><button data-copy="brew install metjum/townyg/townyg">copy</button></div>
-    <div class="shot"><img src="img/app.jpg" alt="Interactive townyg map of Černošín in the GTA V atlas style" width="1400" height="860"></div>
+    <div class="shot"><img src="img/app.jpg" alt="Interactive townyg map of the whole city of Plzen in the GTA V atlas style" width="1400" height="860"></div>
   </header>
+
+  <section id="demo">
+    <h2>Try it <span>live</span></h2>
+    <p class="lead">These are real townyg maps, generated from OpenStreetMap. Pan, zoom, search a street, switch the game style, time of day and weather. Click a building, double-click to get a GPS route.</p>
+    <div class="demos">
+      <a class="demo" href="demo/plzen/index.html">
+        <img loading="lazy" src="img/plzen-vc-zoom.jpg" alt="Plzen in Vice City style, zoomed in on the centre with shop signs">
+        <div><b>Plzen</b><span>Whole city · 137 km² · 48,000 buildings</span><i>Open demo →</i></div>
+      </a>
+      <a class="demo" href="demo/cernosin/index.html">
+        <img loading="lazy" src="img/cernosin-app.jpg" alt="Cernosin village in GTA V atlas style">
+        <div><b>Cernosin</b><span>Small town · 42 km² · loads instantly</span><i>Open demo →</i></div>
+      </a>
+    </div>
+    <p class="lead" style="margin:18px 0 0">The Plzen demo is a 22 MB download, so give it a moment. Make your own in two commands: <code>brew tap metjum/townyg</code> and <code>townyg "Your town"</code>.</p>
+  </section>
 
   <section id="looks">
     <h2>Pick your <span>game</span></h2>
-    <p class="lead">Six looks across four games, each with its own palette, fonts and effects. Posters are 4096 px, ready for print.</p>
+    <p class="lead">Six looks across four games, each with its own palette, fonts and effects. These are the posters of Plzen, rendered at 4096 px and ready for print.</p>
     <div class="posters">
       <figure><img loading="lazy" src="img/poster-gta5.jpg" alt="GTA V atlas style poster"><figcaption>GTA V <span>Atlas</span></figcaption></figure>
       <figure><img loading="lazy" src="img/poster-radar.jpg" alt="GTA V radar style poster"><figcaption>GTA V <span>Radar</span></figcaption></figure>
