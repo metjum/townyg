@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "townyg"
+version = "0.1.0"
+description = "GTA-style interactive maps and posters of any town, generated from OpenStreetMap"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["pillow", "numpy"]
+
+[project.scripts]
+townyg = "townyg.cli:main"
+
+[tool.setuptools]
+packages = ["townyg"]
+
+[tool.setuptools.package-data]
+townyg = ["template/*", "node/*"]

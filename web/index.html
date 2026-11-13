@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>townyg – GTA maps of your town</title>
+<meta name="description" content="Turn any town into a GTA-style map and poster. One command, open data, five game looks.">
+<meta property="og:title" content="townyg – GTA maps of your town">
+<meta property="og:description" content="One command turns any town into an interactive GTA-style map and a print-ready poster.">
+<meta property="og:image" content="img/poster-gta5.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0a1a;--bg2:#161028;--ink:#f4efff;--mute:#a79cc4;--line:#2b2145;--pink:#ff4fa3;--orange:#ffa23a;--violet:#8b5cf6;--cyan:#3de0ff}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+nav{display:flex;justify-content:space-between;align-items:center;padding:20px 0}
+nav b{font:400 24px Anton,sans-serif;letter-spacing:.06em;text-transform:uppercase;background:linear-gradient(90deg,var(--violet),var(--pink),var(--orange));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav a{color:var(--mute);text-decoration:none;font-size:14px;margin-left:20px}
+nav a:hover{color:var(--ink)}
+.hero{position:relative;padding:48px 0 72px;text-align:center;overflow:hidden}
+.hero:before{content:"";position:absolute;left:50%;top:-120px;width:900px;height:900px;transform:translateX(-50%);background:radial-gradient(circle at 50% 40%,rgba(255,79,163,.28),rgba(139,92,246,.16) 40%,transparent 68%);pointer-events:none}
+.hero>*{position:relative}
+h1{font:400 clamp(72px,17vw,190px)/.95 Anton,sans-serif;letter-spacing:.03em;text-transform:uppercase;margin:0;background:linear-gradient(180deg,#b88bff 0%,#ff4fa3 55%,#ffa23a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 30px rgba(255,79,163,.35))}
+.tag{font:500 clamp(18px,3vw,26px) Oswald,sans-serif;letter-spacing:.08em;text-transform:uppercase;margin:12px 0 8px}
+.sub{color:var(--mute);max-width:560px;margin:0 auto 32px}
+.cmd{display:inline-flex;align-items:center;gap:14px;background:#000;border:1px solid var(--line);border-radius:12px;padding:14px 16px 14px 20px;font:500 15px "JetBrains Mono",monospace;max-width:100%;overflow-x:auto;white-space:nowrap}
+.cmd i{color:var(--pink);font-style:normal}
+.cmd button{font:inherit;font-size:12px;background:var(--bg2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+.cmd button:hover{border-color:var(--pink)}
+.shot{margin:56px auto 0;max-width:980px;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,79,163,.12)}
+.shot img{display:block;width:100%;height:auto}
+section{padding:72px 0;border-top:1px solid var(--line)}
+h2{font:400 clamp(32px,5vw,48px)/1.1 Anton,sans-serif;letter-spacing:.04em;text-transform:uppercase;margin:0 0 12px}
+h2 span{color:var(--pink)}
+.lead{color:var(--mute);max-width:640px;margin:0 0 40px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:22px}
+.card h3{margin:0 0 6px;font:500 18px Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase}
+.card p{margin:0;color:var(--mute);font-size:15px}
+.card .n{font:400 34px Anton,sans-serif;color:var(--orange);margin-bottom:6px}
+.posters{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.posters figure{margin:0;background:var(--bg2);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.posters img{display:block;width:100%;height:auto}
+.posters figcaption{padding:12px 16px;display:flex;justify-content:space-between;font:500 14px Oswald,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.posters figcaption span{color:var(--mute)}
+pre{background:#000;border:1px solid var(--line);border-radius:12px;padding:18px 20px;overflow-x:auto;font:400 14px/1.7 "JetBrains Mono",monospace;margin:0 0 16px}
+pre .c{color:#6d6490}pre .p{color:var(--pink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+code{font:400 .92em "JetBrains Mono",monospace;background:var(--bg2);padding:2px 6px;border-radius:6px}
+footer{border-top:1px solid var(--line);padding:32px 0 56px;color:var(--mute);font-size:14px}
+footer a{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav><b>townyg</b><div><a href="#install">Install</a><a href="#looks">Looks</a><a href="#how">How it works</a><a href="https://github.com/metjum/townyg">GitHub</a></div></nav>
+
+  <header class="hero">
+    <h1>townyg</h1>
+    <p class="tag">Your town. Rockstar style.</p>
+    <p class="sub">Type a town, get an interactive GTA-style map and a print-ready poster. Real streets, real buildings, real shop names, built from open data.</p>
+    <div class="cmd"><span><i>$</i> brew install metjum/townyg/townyg</span><button data-copy="brew install metjum/townyg/townyg">copy</button></div>
+    <div class="shot"><img src="img/app.jpg" alt="Interactive townyg map of Černošín in the GTA V atlas style" width="1400" height="860"></div>
+  </header>
+
+  <section id="looks">
+    <h2>Pick your <span>game</span></h2>
+    <p class="lead">Six looks across four games, each with its own palette, fonts and effects. Posters are 4096 px, ready for print.</p>
+    <div class="posters">
+      <figure><img loading="lazy" src="img/poster-gta5.jpg" alt="GTA V atlas style poster"><figcaption>GTA V <span>Atlas</span></figcaption></figure>
+      <figure><img loading="lazy" src="img/poster-radar.jpg" alt="GTA V radar style poster"><figcaption>GTA V <span>Radar</span></figcaption></figure>
+      <figure><img loading="lazy" src="img/poster-sat.jpg" alt="GTA V satellite style poster"><figcaption>GTA V <span>Satellite</span></figcaption></figure>
+      <figure><img loading="lazy" src="img/poster-gta4.jpg" alt="GTA IV style poster"><figcaption>GTA IV <span>Liberty</span></figcaption></figure>
+      <figure><img loading="lazy" src="img/poster-vc.jpg" alt="Vice City style poster"><figcaption>Vice City <span>Neon</span></figcaption></figure>
+      <figure><img loading="lazy" src="img/poster-sa.jpg" alt="San Andreas style poster"><figcaption>San Andreas <span>Radar</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>What you <span>get</span></h2>
+    <p class="lead">A map you can open in any browser, not just a picture.</p>
+    <div class="grid">
+      <div class="card"><h3>The whole town</h3><p>Follows the municipality boundary, not a square around the centre. Outside it is sea, like San Andreas.</p></div>
+      <div class="card"><h3>Living traffic</h3><p>Cars, taxis, police and buses that stop at real bus stops. Brake lights, parked cars, street lamps.</p></div>
+      <div class="card"><h3>Shop names on buildings</h3><p>Businesses from OpenStreetMap show up as signs on the buildings, zoom in and read them.</p></div>
+      <div class="card"><h3>Day, season, weather</h3><p>Windows light up at night. Switch summer to winter, add rain, snow or fog.</p></div>
+      <div class="card"><h3>GPS and search</h3><p>Search streets and places, drop a waypoint and get a route like the in-game GPS.</p></div>
+      <div class="card"><h3>Smooth on big towns</h3><p>Cached layers, spatial indexes and lazy trees keep it at 60 fps, even for a whole city.</p></div>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>Install & <span>run</span></h2>
+    <p class="lead">macOS with Homebrew. Maps and posters are written to <code>~/Townyg</code>.</p>
+    <div class="two">
+      <div>
+<pre><span class="c"># install</span>
+<span class="p">$</span> brew tap metjum/townyg
+<span class="p">$</span> brew install townyg
+
+<span class="c"># interactive wizard</span>
+<span class="p">$</span> townyg</pre>
+      </div>
+      <div>
+<pre><span class="c"># one town, no questions</span>
+<span class="p">$</span> townyg "Plzeň" -y
+
+<span class="c"># only two styles, square area</span>
+<span class="p">$</span> townyg "Tachov" --area square --radius 2 \
+      --styles gta5,vc --open</pre>
+      </div>
+    </div>
+    <p class="lead" style="margin:0">The first poster render installs headless Chromium once (about 150 MB). A big city needs a few minutes of downloading; unfinished runs resume from cache.</p>
+  </section>
+
+  <section id="how">
+    <h2>How it <span>works</span></h2>
+    <div class="grid" style="margin-top:24px">
+      <div class="card"><div class="n">01</div><h3>Find</h3><p>Nominatim locates the town and its administrative boundary.</p></div>
+      <div class="card"><div class="n">02</div><h3>Download</h3><p>Streets, buildings, land cover, water and places come from OpenStreetMap through Overpass, tile by tile and in parallel.</p></div>
+      <div class="card"><div class="n">03</div><h3>Shade</h3><p>Terrain from AWS Terrarium tiles becomes a hillshade relief.</p></div>
+      <div class="card"><div class="n">04</div><h3>Render</h3><p>A canvas renderer draws the map in the chosen styles. Headless Chromium prints the posters.</p></div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p>townyg is MIT licensed, <a href="https://github.com/metjum/townyg">source on GitHub</a>. Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a> (ODbL), relief from Mapzen Terrarium on AWS. Not affiliated with Rockstar Games; GTA is a trademark of Take-Two Interactive.</p>
+  </div>
+</footer>
+<script>
+document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText(b.dataset.copy);b.textContent='copied';setTimeout(()=>b.textContent='copy',1400)}catch(e){}
+}));
+</script>
+</body>
+</html>
