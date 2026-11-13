@@ -4,7 +4,7 @@ class Townyg < Formula
   desc "GTA-style interactive maps and posters of any town, from OpenStreetMap"
   homepage "https://metjum.github.io/townyg/"
   url "https://github.com/metjum/townyg/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "REPLACE_WITH_RELEASE_SHA256"
+  sha256 "f13cde00d4bb3f4b8297014c86a646b8589e4feb7d2055662eb08b4924f4d77e"
   license "MIT"
   head "https://github.com/metjum/townyg.git", branch: "main"
 
